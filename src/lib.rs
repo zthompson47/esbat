@@ -45,11 +45,11 @@ mod iter;
 mod phase;
 mod util;
 
-pub use crate::iter::{daily_lunar_phase_iter, lunar_phase_iter, DailyIter, Iter};
+pub use crate::iter::{lunar_phase_iter, Iter};
 pub use crate::phase::{Phase, PrincipalPhase};
 
 use crate::conv::fixed_from_chrono;
-use chrono::{Date, DateTime, Duration, TimeZone, Utc};
+use chrono::{NaiveDate, NaiveDateTime, Duration};
 
 /// Calculates the lunar phase for a given moment.
 ///
@@ -66,8 +66,8 @@ use chrono::{Date, DateTime, Duration, TimeZone, Utc};
 /// let t = Utc.ymd(2020, 10, 31).and_hms_milli(14, 48, 59, 300);
 /// assert!((lunar_phase(t) - 180.0).abs() < 0.00001);
 /// ```
-pub fn lunar_phase<Tz: TimeZone>(t: DateTime<Tz>) -> f64 {
-    calendar::lunar_phase(fixed_from_chrono(t.with_timezone(&Utc)))
+pub fn lunar_phase(t: NaiveDateTime) -> f64 {
+    calendar::lunar_phase(fixed_from_chrono(t))
 }
 
 /// Calculates the lunar phase for a given date.
@@ -83,7 +83,8 @@ pub fn lunar_phase<Tz: TimeZone>(t: DateTime<Tz>) -> f64 {
 /// let t = Utc.ymd(2020, 10, 31);
 /// assert_eq!(daily_lunar_phase(t), Phase::FullMoon);
 /// ```
-pub fn daily_lunar_phase<Tz: TimeZone>(t: Date<Tz>) -> Phase {
-    let t = t.and_hms(0, 0, 0).with_timezone(&Utc);
+/// # Panics
+pub fn daily_lunar_phase(t: NaiveDate) -> Phase {
+    let t = t.and_hms_opt(0, 0, 0).unwrap();
     Phase::from_phase_range(lunar_phase(t), lunar_phase(t + Duration::days(1)))
 }
